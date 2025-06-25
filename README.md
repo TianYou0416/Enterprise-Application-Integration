@@ -1,66 +1,191 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🎟️ Event Registration and Ticketing System (ERTS)
 
-## About Laravel
+A Laravel-based web system that allows users to browse events, register, receive confirmation emails with QR codes, and log in via SOAP web service. 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Browse events by category (Sport, Seminar, Entertainment)
+- Event detail view and online registration form
+- SOAP-based login authentication
+- Confirmation email with QR code using Mailtrap
+- Simulated payment methods (FPX, TNG)
+- Admin panel (optional for future expansion)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 📦 Requirements
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- PHP >= 8.0
+- Composer
+- Laravel 10+
+- MySQL
+- Mailtrap account (for email testing)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🛠️ Installation Steps
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Clone the Repository
 
-### Premium Partners
+```bash
+git clone <your-repo-url>
+cd ERTS
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 2. Install Dependencies
 
-## Contributing
+```bash
+composer install
+npm install && npm run dev  # optional, if using frontend scaffolding
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Create and Configure `.env`
 
-## Code of Conduct
+```bash
+cp .env.example .env
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Open `.env` and configure:
 
-## Security Vulnerabilities
+```env
+APP_NAME="ERTS"
+APP_URL=http://localhost:8000
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=erts_db
+DB_USERNAME=root
+DB_PASSWORD=
 
-## License
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_mailtrap_username
+MAIL_PASSWORD=your_mailtrap_password
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=no-reply@hypehub.com
+MAIL_FROM_NAME="HypeHub"
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> 🔐 Replace `MAIL_USERNAME` and `MAIL_PASSWORD` with your actual [Mailtrap](https://mailtrap.io/) credentials.
+
+### 4. Generate App Key
+
+```bash
+php artisan key:generate
+```
+
+### 5. Migrate and Seed Database
+
+```bash
+php artisan migrate --seed
+```
+
+---
+
+## 🔄 SOAP Login Setup
+
+### 1. Create Standalone SOAP Server
+
+Create a folder `soap-server` outside your Laravel project. Inside it, create `soap-auth.php`:
+
+```php
+<?php
+ini_set("soap.wsdl_cache_enabled", "0");
+
+class SoapAuthService
+{
+    public function Login($params)
+    {
+        $username = $params['username'];
+        $password = $params['password'];
+
+        if ($username === 'admin' && $password === '123456') {
+            return ['LoginResult' => true];
+        } else {
+            return ['LoginResult' => false];
+        }
+    }
+}
+
+$server = new SoapServer(null, [
+    'uri' => 'http://localhost/soap-auth.php'
+]);
+
+$server->setClass('SoapAuthService');
+$server->handle();
+```
+
+### 2. Run the SOAP Server (in separate terminal)
+
+```bash
+cd soap-server
+php -S localhost:8888
+```
+
+Leave this running in one terminal window.
+
+---
+
+## ▶️ Running the Laravel Project
+
+In your Laravel project folder:
+
+```bash
+php artisan serve
+```
+
+Open the system at:  
+[http://localhost:8000](http://localhost:8000)
+
+Use these credentials to log in via SOAP:
+
+```
+Username: user
+Password: 123456
+```
+
+---
+
+## 💌 Testing Email with Mailtrap
+
+After registration:
+- Mail will be sent to Mailtrap inbox
+- Email contains: confirmation, event details, and QR code
+
+Go to your Mailtrap inbox to preview the email.
+
+---
+
+## ✅ Notes
+
+- Login via SOAP is handled using PHP `SoapClient`
+- Registration form fields: name, email, phone (all required)
+- Email contains an embedded QR code with event detail
+- Categories: Sport, Seminar, Entertainment
+
+---
+
+## 🧼 Clean Up
+
+To reset the database:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+To regenerate the QR code package:
+
+```bash
+composer require simplesoftwareio/simple-qrcode
+```
+
+---
+
+## 📄 License
+
+This is a student project prototype for academic purposes.
